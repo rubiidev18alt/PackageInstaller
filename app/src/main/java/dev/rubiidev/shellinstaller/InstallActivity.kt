@@ -1,18 +1,19 @@
 package dev.rubiidev.shellinstaller
 
 import android.content.Intent
+import android.content.pm.PackageInfo
 import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.color.MaterialColors
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.rubiidev.shellinstaller.backend.Backends
 import dev.rubiidev.shellinstaller.databinding.ActivityInstallBinding
@@ -23,25 +24,36 @@ import dev.rubiidev.shellinstaller.util.versionCodeCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
+/**
+ * System-installer-style popup. The activity uses a floating dialog theme and renders the
+ * install session as a compact confirmation box (Cancel / Install -> progress -> Done / Open).
+ */
 class InstallActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_URIS = "extra_uris"
+        private const val MAX_DIALOG_WIDTH_DP = 420
     }
 
     private lateinit var binding: ActivityInstallBinding
+
+    private var detailsExpanded = false
+    private var boundInfo: ApkInfo? = null
+    private var installedInfo: PackageInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityInstallBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        applyInsets()
+        setFinishOnTouchOutside(false)
+        configureWindow()
         setupButtons()
         observeState()
         handleIntent(intent)
+
+        onBackPressedDispatcher.addCallback(this) { handleBack() }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -50,28 +62,19 @@ class InstallActivity : AppCompatActivity() {
         handleIntent(intent)
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
-
-    private fun applyInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            view.updatePadding(top = bars.top, bottom = bars.bottom)
-            insets
-        }
+    private fun configureWindow() {
+        val metrics = resources.displayMetrics
+        val maxWidth = (MAX_DIALOG_WIDTH_DP * metrics.density).toInt()
+        val width = min((metrics.widthPixels * 0.92f).toInt(), maxWidth)
+        window?.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
+        window?.setGravity(Gravity.CENTER)
     }
 
     private fun setupButtons() {
-        binding.btnInstall.setOnClickListener { InstallManager.install(this) }
-        binding.btnCancel.setOnClickListener { InstallManager.cancel() }
-        binding.btnRetry.setOnClickListener { InstallManager.install(this) }
-        binding.btnDone.setOnClickListener {
-            InstallManager.reset()
-            finish()
+        binding.btnDetails.setOnClickListener {
+            detailsExpanded = !detailsExpanded
+            render(InstallManager.state.value)
         }
-        binding.btnOpen.setOnClickListener { openInstalledApp() }
         binding.btnUninstall.setOnClickListener { confirmUninstall() }
     }
 
@@ -85,9 +88,14 @@ class InstallActivity : AppCompatActivity() {
 
     private fun handleIntent(intent: Intent) {
         val uris = collectUris(intent)
-        if (uris.isNotEmpty()) {
-            InstallManager.prepare(this, uris)
+        if (uris.isEmpty()) {
+            finish()
+            return
         }
+        boundInfo = null
+        installedInfo = null
+        detailsExpanded = false
+        InstallManager.prepare(this, uris)
     }
 
     @Suppress("DEPRECATION")
@@ -109,66 +117,85 @@ class InstallActivity : AppCompatActivity() {
 
     private fun render(state: InstallManager.State) {
         val info = infoOf(state)
-
-        binding.preparingSection.visibility =
-            if (state is InstallManager.State.Preparing) View.VISIBLE else View.GONE
-        if (state is InstallManager.State.Preparing) binding.tvPreparing.text = state.message
-
-        binding.cardApp.visibility = if (info != null) View.VISIBLE else View.GONE
-        if (info != null) bindAppInfo(info)
-
-        binding.btnInstall.visibility =
-            if (state is InstallManager.State.Ready) View.VISIBLE else View.GONE
-
-        binding.progressSection.visibility =
-            if (state is InstallManager.State.Installing) View.VISIBLE else View.GONE
-        if (state is InstallManager.State.Installing) {
-            binding.progress.progress = (state.progress * 1000).toInt()
-            binding.tvInstallStatus.text = state.status
+        if (info != null && (info !== boundInfo || state !is InstallManager.State.Installing)) {
+            bindAppInfo(info)
+        } else if (info == null) {
+            boundInfo = null
+            installedInfo = null
+            binding.tvAppLabel.setText(R.string.app_name)
+            binding.tvPackageName.visibility = View.GONE
+            binding.tvVersion.visibility = View.GONE
+            binding.ivIcon.setImageResource(R.mipmap.ic_launcher)
         }
 
-        val isResult = state is InstallManager.State.Success || state is InstallManager.State.Failed
-        binding.tvResult.visibility = if (isResult) View.VISIBLE else View.GONE
-        binding.resultButtons.visibility = if (isResult) View.VISIBLE else View.GONE
+        val showInfo = info != null
+        binding.tvPackageName.visibility = if (showInfo) View.VISIBLE else View.GONE
+        binding.tvVersion.visibility = if (showInfo) View.VISIBLE else View.GONE
+        binding.tvInstalled.visibility =
+            if (showInfo && state is InstallManager.State.Ready) View.VISIBLE else View.GONE
+        binding.tvMeta.visibility =
+            if (showInfo && (state is InstallManager.State.Ready || state is InstallManager.State.Installing)) View.VISIBLE else View.GONE
+        binding.tvBackendLine.visibility = binding.tvMeta.visibility
+
         when (state) {
-            is InstallManager.State.Success -> {
-                binding.tvResult.text = getString(R.string.install_success)
-                binding.tvResult.setTextColor(
-                    MaterialColors.getColor(binding.tvResult, com.google.android.material.R.attr.colorPrimary)
+            is InstallManager.State.Preparing -> {
+                binding.tvQuestion.visibility = View.GONE
+                binding.tvError.visibility = View.GONE
+                showProgress(indeterminate = true, status = state.message, progress = 0f)
+                setButtons(negative = R.string.cancel to { InstallManager.reset(); finish() }, positive = null)
+            }
+            is InstallManager.State.Ready -> {
+                binding.tvQuestion.visibility = View.VISIBLE
+                binding.tvQuestion.text = questionFor(info!!)
+                binding.tvError.visibility = View.GONE
+                hideProgress()
+                setButtons(
+                    negative = R.string.cancel to { InstallManager.reset(); finish() },
+                    positive = R.string.install to { InstallManager.install(this) }
                 )
-                binding.btnOpen.visibility = View.VISIBLE
-                binding.btnRetry.visibility = View.GONE
+            }
+            is InstallManager.State.Installing -> {
+                binding.tvQuestion.visibility = View.VISIBLE
+                binding.tvQuestion.setText(R.string.installing_app)
+                binding.tvError.visibility = View.GONE
+                showProgress(indeterminate = false, status = state.status, progress = state.progress)
+                setButtons(negative = R.string.cancel to { InstallManager.cancel() }, positive = null)
+            }
+            is InstallManager.State.Success -> {
+                binding.tvQuestion.visibility = View.VISIBLE
+                binding.tvQuestion.setText(R.string.install_success_popup)
+                binding.tvError.visibility = View.GONE
+                hideProgress()
+                setButtons(
+                    negative = R.string.done to { InstallManager.reset(); finish() },
+                    positive = R.string.open_app to { openInstalledApp() }
+                )
             }
             is InstallManager.State.Failed -> {
-                binding.tvResult.text = getString(R.string.install_failed) + "\n" + state.message
-                binding.tvResult.setTextColor(
-                    MaterialColors.getColor(binding.tvResult, com.google.android.material.R.attr.colorError)
+                binding.tvQuestion.visibility = View.VISIBLE
+                binding.tvQuestion.setText(R.string.install_failed_popup)
+                binding.tvError.visibility = View.VISIBLE
+                binding.tvError.text = state.message
+                hideProgress()
+                setButtons(
+                    negative = R.string.close to { InstallManager.reset(); finish() },
+                    positive = if (state.info != null) R.string.retry to { InstallManager.install(this) } else null
                 )
-                binding.btnOpen.visibility = View.GONE
-                binding.btnRetry.visibility = if (state.info != null) View.VISIBLE else View.GONE
             }
-            else -> {}
+            InstallManager.State.Idle -> {
+                binding.tvQuestion.visibility = View.GONE
+                binding.tvError.visibility = View.GONE
+                hideProgress()
+                setButtons(negative = null, positive = null)
+            }
         }
 
-        val installed = info?.packageName?.let { isInstalled(it) } == true
-        binding.btnUninstall.visibility =
-            if (info != null && installed &&
-                (state is InstallManager.State.Ready || state is InstallManager.State.Failed)
-            ) View.VISIBLE else View.GONE
-
-        val logText = when (state) {
-            is InstallManager.State.Installing -> InstallManager.logSnapshot()
-            is InstallManager.State.Success -> state.log
-            is InstallManager.State.Failed -> state.log
-            else -> ""
-        }
-        val showLog = logText.isNotBlank()
-        binding.tvLogHeader.visibility = if (showLog) View.VISIBLE else View.GONE
-        binding.tvLog.visibility = if (showLog) View.VISIBLE else View.GONE
-        binding.tvLog.text = logText
+        renderDetails(state)
+        renderUninstall(state, info)
     }
 
     private fun bindAppInfo(info: ApkInfo) {
+        boundInfo = info
         binding.tvAppLabel.text = info.label
         binding.tvPackageName.text = info.packageName ?: "—"
         binding.tvVersion.text = "${info.versionName ?: "?"} (${info.versionCode})"
@@ -178,7 +205,7 @@ class InstallActivity : AppCompatActivity() {
             binding.ivIcon.setImageResource(R.mipmap.ic_launcher)
         }
 
-        val installedInfo = info.packageName?.let { pkg ->
+        installedInfo = info.packageName?.let { pkg ->
             try {
                 packageManager.getPackageInfo(pkg, 0)
             } catch (e: Exception) {
@@ -187,10 +214,10 @@ class InstallActivity : AppCompatActivity() {
         }
         binding.tvInstalled.text = when {
             installedInfo == null -> getString(R.string.not_installed)
-            installedInfo.versionCodeCompat() < info.versionCode ->
-                getString(R.string.update_available, installedInfo.versionName ?: "?", info.versionName ?: "?")
-            installedInfo.versionCodeCompat() > info.versionCode ->
-                getString(R.string.downgrade_warning, installedInfo.versionName ?: "?", info.versionName ?: "?")
+            installedInfo!!.versionCodeCompat() < info.versionCode ->
+                getString(R.string.update_available, installedInfo!!.versionName ?: "?", info.versionName ?: "?")
+            installedInfo!!.versionCodeCompat() > info.versionCode ->
+                getString(R.string.downgrade_warning, installedInfo!!.versionName ?: "?", info.versionName ?: "?")
             else -> getString(R.string.same_version, info.versionName ?: "?")
         }
 
@@ -208,8 +235,68 @@ class InstallActivity : AppCompatActivity() {
         val backend = Backends.readyBackendOrNull(this)
         binding.tvBackendLine.text = getString(
             R.string.backend_line,
-            backend?.displayName ?: getString(R.string.err_no_backend)
+            backend?.displayName ?: getString(R.string.no_backend_short)
         )
+    }
+
+    private fun questionFor(info: ApkInfo): String {
+        val installed = installedInfo
+        return when {
+            installed == null -> getString(R.string.install_question)
+            installed.versionCodeCompat() < info.versionCode -> getString(R.string.update_question)
+            installed.versionCodeCompat() > info.versionCode -> getString(R.string.downgrade_question)
+            else -> getString(R.string.same_version_question)
+        }
+    }
+
+    private fun showProgress(indeterminate: Boolean, status: String, progress: Float) {
+        binding.progressSection.visibility = View.VISIBLE
+        binding.progress.isIndeterminate = indeterminate
+        if (!indeterminate) {
+            binding.progress.progress = (progress * 1000).toInt()
+        }
+        binding.tvInstallStatus.text = status
+    }
+
+    private fun hideProgress() {
+        binding.progressSection.visibility = View.GONE
+    }
+
+    private fun setButtons(negative: Pair<Int, () -> Unit>?, positive: Pair<Int, () -> Unit>?) {
+        bindButton(binding.btnNegative, negative)
+        bindButton(binding.btnPositive, positive)
+    }
+
+    private fun bindButton(button: MaterialButton, spec: Pair<Int, () -> Unit>?) {
+        if (spec == null) {
+            button.visibility = View.GONE
+            button.setOnClickListener(null)
+        } else {
+            button.visibility = View.VISIBLE
+            button.setText(spec.first)
+            button.setOnClickListener { spec.second.invoke() }
+        }
+    }
+
+    private fun renderDetails(state: InstallManager.State) {
+        val logText = when (state) {
+            is InstallManager.State.Installing -> InstallManager.logSnapshot()
+            is InstallManager.State.Success -> state.log
+            is InstallManager.State.Failed -> state.log
+            else -> ""
+        }
+        val hasLog = logText.isNotBlank()
+        binding.btnDetails.visibility = if (hasLog) View.VISIBLE else View.GONE
+        binding.btnDetails.setText(if (detailsExpanded) R.string.hide_details else R.string.details)
+        binding.btnDetails.setIconResource(if (detailsExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+        binding.detailsSection.visibility = if (hasLog && detailsExpanded) View.VISIBLE else View.GONE
+        binding.tvLog.text = logText
+    }
+
+    private fun renderUninstall(state: InstallManager.State, info: ApkInfo?) {
+        val canUninstall = info?.packageName != null && installedInfo != null &&
+            (state is InstallManager.State.Ready || state is InstallManager.State.Failed)
+        binding.btnUninstall.visibility = if (canUninstall) View.VISIBLE else View.GONE
     }
 
     private fun infoOf(state: InstallManager.State): ApkInfo? = when (state) {
@@ -220,11 +307,14 @@ class InstallActivity : AppCompatActivity() {
         else -> null
     }
 
-    private fun isInstalled(packageName: String): Boolean = try {
-        packageManager.getPackageInfo(packageName, 0)
-        true
-    } catch (e: Exception) {
-        false
+    private fun handleBack() {
+        when (InstallManager.state.value) {
+            is InstallManager.State.Installing -> InstallManager.cancel()
+            else -> {
+                InstallManager.reset()
+                finish()
+            }
+        }
     }
 
     private fun openInstalledApp() {
@@ -233,6 +323,8 @@ class InstallActivity : AppCompatActivity() {
         val launch = packageManager.getLaunchIntentForPackage(packageName)
         if (launch != null) {
             startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            InstallManager.reset()
+            finish()
         } else {
             toast(getString(R.string.not_installed))
         }
@@ -261,6 +353,8 @@ class InstallActivity : AppCompatActivity() {
                 }
             }
             toast(message)
+            boundInfo = null
+            installedInfo = null
             render(InstallManager.state.value)
         }
     }

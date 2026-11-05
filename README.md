@@ -32,12 +32,16 @@ instead of the standard on-device installer. That means:
   browser can hand APKs to it.
 - **Split bundles** — installs `.apk`, `.apks`, `.xapk`, `.apkm`, and `.zip` bundles, or multiple
   selected split APKs, using a proper `pm install-create / install-write / install-commit` session.
+- **System-style install popup** — opening an APK shows a compact dialog just like Android's own
+  installer: app icon + name, an install / update / downgrade prompt, Cancel / Install, live
+  progress, and Done / Open when finished.
 - **App preview** — icon, label, package name, version, size, min/target SDK, and an
   update / downgrade / same-version comparison against what's installed.
 - **Options** — allow downgrade (`-d`), grant all runtime permissions (`-g`), and an automatic retry
   with `--bypass-low-target-sdk-block` for legacy apps blocked on Android 14+.
 - **Open / uninstall** the app after installing, with a live install log.
-- Material 3 UI with dynamic color, light/dark themes.
+- Material 3 UI with dynamic color, light/dark themes, a dashboard that shows which backend is
+  ready at a glance, and collapsible Wireless-ADB setup.
 
 ## Requirements
 
@@ -72,7 +76,8 @@ below. After that, all further installs go through Shell Installer.
 2. In Wireless debugging, tap **Pair device with pairing code**. A dialog shows a **pairing port**
    and a **6-digit code**. Keep this dialog open and put Shell Installer in **split-screen** next to
    it (or use **Auto-detect ports**).
-3. In Shell Installer's *Wireless ADB* card, enter the pairing port and code, then tap **Pair**.
+3. In Shell Installer's *Wireless ADB* card, tap **Set up wireless ADB**, enter the pairing port and
+   code, then tap **Pair**.
 4. After pairing succeeds, enter the **connection port** (shown on the main Wireless debugging
    screen, *not* the pairing dialog) and tap **Connect**. The card should read **Connected**.
 
@@ -88,11 +93,14 @@ used automatically (or select it explicitly under *Preferred backend*).
 ## Usage
 
 - **From a file manager / browser:** open or share an `.apk` (or `.apks` / `.xapk` / `.apkm`) and
-  choose **Install with Shell Installer**.
-- **From the app:** tap **Choose APK or bundle**, select one or more files, review the app info, and
-  tap **Install**.
-- After a successful install you can **Open app** or **Done**. If a version is already installed you
-  can also **Uninstall existing app** (useful for signature-mismatch updates).
+  choose **Install with Shell Installer**. A system-installer-style popup appears over the current
+  app with the app's icon, name, and version.
+- **From the app:** tap **Choose APK or bundle**, select one or more files; the same install popup
+  appears. Review the info and tap **Install**.
+- While installing, the popup shows live progress; **Details** expands the full `pm` session log.
+- After a successful install you can **Open** or **Done**. If a version is already installed you
+  can also **Uninstall existing app** (useful for signature-mismatch updates). On failure, **Retry**
+  re-runs the install and **Details** shows what went wrong.
 
 ### Install options
 
