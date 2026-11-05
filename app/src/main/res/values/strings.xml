@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Shell Installer</string>
+    <string name="install_with">Install with Shell Installer</string>
+
+    <!-- Main screen -->
+    <string name="hero_title">Install an app</string>
+    <string name="hero_subtitle">Pick an APK or a split bundle (APKS / XAPK / APKM). You can also open APK files from any file manager and choose Shell Installer.</string>
+    <string name="choose_file">Choose APK or bundle</string>
+    <string name="backend_section">Install backend</string>
+    <string name="backend_section_hint">Installs run as the shell user (like adb install), so they skip the on-device “unknown sources” / advanced sideloading flow.</string>
+
+    <string name="shizuku_title">Shizuku</string>
+    <string name="shizuku_desc">Recommended. Start Shizuku via Wireless debugging (no root, no PC), then grant access below.</string>
+    <string name="shizuku_not_installed">Not installed</string>
+    <string name="shizuku_not_running">Installed, but not running</string>
+    <string name="shizuku_no_permission">Running — permission needed</string>
+    <string name="shizuku_ready_shell">Ready (shell)</string>
+    <string name="shizuku_ready_root">Ready (root)</string>
+    <string name="open_shizuku">Open Shizuku</string>
+    <string name="grant_permission">Grant access</string>
+    <string name="get_shizuku">Get Shizuku</string>
+
+    <string name="adb_title">Wireless ADB (on-device)</string>
+    <string name="adb_desc">Android 11+. Enable Wireless debugging, pair once with a pairing code, then connect — all on this device, no PC needed.</string>
+    <string name="adb_not_paired">Not paired</string>
+    <string name="adb_paired">Paired — not connected</string>
+    <string name="adb_connected">Connected on port %1$d</string>
+    <string name="pairing_port_hint">Pairing port</string>
+    <string name="pairing_code_hint">Pairing code</string>
+    <string name="pair">Pair</string>
+    <string name="connect_port_hint">Connection port</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="auto_detect_ports">Auto-detect ports</string>
+    <string name="open_developer_options">Open developer options</string>
+    <string name="adb_instructions">In Developer options → Wireless debugging: tap “Pair device with pairing code” to show the pairing port and code (keep that dialog open, use split-screen). The connection port is shown on the main Wireless debugging screen.</string>
+
+    <string name="root_title">Root (su)</string>
+    <string name="root_desc">For rooted devices. Uses su to run pm directly.</string>
+    <string name="root_unknown">Not checked</string>
+    <string name="root_available">Available</string>
+    <string name="root_unavailable">Not available</string>
+    <string name="check_root">Check root</string>
+
+    <string name="options_section">Install options</string>
+    <string name="opt_downgrade">Allow downgrade</string>
+    <string name="opt_downgrade_sub">Install older versions over newer ones (pm -d)</string>
+    <string name="opt_grant">Grant all runtime permissions</string>
+    <string name="opt_grant_sub">Skip permission prompts on first launch (pm -g)</string>
+    <string name="opt_bypass">Bypass low-target-SDK block</string>
+    <string name="opt_bypass_sub">Automatically retry legacy apps blocked on Android 14+</string>
+    <string name="backend_preference">Preferred backend</string>
+    <string name="backend_auto">Auto (Shizuku → ADB → Root)</string>
+
+    <string name="about">Shell Installer installs APKs with shell-level privileges via Shizuku, on-device Wireless ADB, or root. It does not use the standard PackageInstaller UI and never needs the “install unknown apps” permission.</string>
+    <string name="view_source">View source on GitHub</string>
+
+    <!-- Install screen -->
+    <string name="install_title">Install app</string>
+    <string name="preparing">Preparing…</string>
+    <string name="copying_file">Copying file…</string>
+    <string name="extracting_bundle">Extracting split bundle…</string>
+    <string name="parsing_apk">Reading APK…</string>
+    <string name="install">Install</string>
+    <string name="installing">Installing…</string>
+    <string name="cancel">Cancel</string>
+    <string name="open_app">Open app</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="close">Close</string>
+    <string name="uninstall_existing">Uninstall existing app</string>
+    <string name="uninstall_confirm_title">Uninstall %1$s?</string>
+    <string name="uninstall_confirm_msg">This removes the app and its data for the current user. This cannot be undone.</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="install_success">Installed successfully</string>
+    <string name="install_failed">Install failed</string>
+    <string name="not_installed">Not installed</string>
+    <string name="installed_version">Installed: %1$s</string>
+    <string name="update_available">Update: %1$s → %2$s</string>
+    <string name="downgrade_warning">Downgrade: %1$s → %2$s</string>
+    <string name="same_version">Same version installed (%1$s)</string>
+    <string name="splits_count">%1$d APK files</string>
+    <string name="single_apk">Single APK</string>
+    <string name="sdk_range">minSdk %1$d · targetSdk %2$d</string>
+    <string name="backend_line">Backend: %1$s</string>
+    <string name="log">Log</string>
+    <string name="working">Working…</string>
+
+    <!-- Errors / toasts -->
+    <string name="err_no_backend">No install backend is ready. Set up Shizuku, Wireless ADB, or Root on the main screen first.</string>
+    <string name="err_open_file">Could not open the selected file.</string>
+    <string name="err_not_apk">That file is not an APK or a supported split bundle.</string>
+    <string name="err_no_apks_in_bundle">No APK files were found inside the bundle.</string>
+    <string name="err_pair_fields">Enter the pairing port and the 6-digit pairing code.</string>
+    <string name="err_connect_port">Enter the connection port shown on the Wireless debugging screen.</string>
+    <string name="pairing_success">Paired successfully. Now connect using the connection port.</string>
+    <string name="pairing_failed">Pairing failed. Check the port and code, and keep the pairing dialog open.</string>
+    <string name="connect_success">Connected to ADB.</string>
+    <string name="scanning">Scanning for wireless debugging services…</string>
+    <string name="scan_done">Scan finished.</string>
+    <string name="root_granted">Root access is available.</string>
+    <string name="root_denied">Root access is not available.</string>
+    <string name="uninstalled">Uninstalled.</string>
+    <string name="cancelled">Cancelled</string>
+</resources>
