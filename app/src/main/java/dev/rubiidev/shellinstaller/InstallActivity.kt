@@ -3,6 +3,7 @@ package dev.rubiidev.shellinstaller
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -10,10 +11,15 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.rubiidev.shellinstaller.backend.Backends
 import dev.rubiidev.shellinstaller.databinding.ActivityInstallBinding
@@ -27,14 +33,15 @@ import kotlinx.coroutines.withContext
 import kotlin.math.min
 
 /**
- * System-installer-style popup. The activity uses a floating dialog theme and renders the
- * install session as a compact confirmation box (Cancel / Install -> progress -> Done / Open).
+ * System-installer-style popup, anchored to the bottom of the screen like Samsung's One UI
+ * package installer. The activity uses a floating dialog theme and renders the install session
+ * as a bottom sheet (Cancel / Install -> progress -> Done / Open) that slides up from the bottom.
  */
 class InstallActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_URIS = "extra_uris"
-        private const val MAX_DIALOG_WIDTH_DP = 420
+        private const val MAX_SHEET_WIDTH_DP = 600
     }
 
     private lateinit var binding: ActivityInstallBinding
@@ -49,6 +56,7 @@ class InstallActivity : AppCompatActivity() {
         setContentView(binding.root)
         setFinishOnTouchOutside(false)
         configureWindow()
+        applyWindowInsets()
         setupButtons()
         observeState()
         handleIntent(intent)
@@ -63,11 +71,42 @@ class InstallActivity : AppCompatActivity() {
     }
 
     private fun configureWindow() {
+        val window = window ?: return
+        // Draw behind the navigation bar so the sheet sits flush with the bottom edge,
+        // then pad the content back out by the navigation-bar inset (see applyWindowInsets).
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Match the nav bar to the sheet surface so the bottom edge reads as one continuous
+        // panel (whether or not the window draws behind the bar on a given device).
+        window.navigationBarColor =
+            MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
         val metrics = resources.displayMetrics
-        val maxWidth = (MAX_DIALOG_WIDTH_DP * metrics.density).toInt()
-        val width = min((metrics.widthPixels * 0.92f).toInt(), maxWidth)
-        window?.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
-        window?.setGravity(Gravity.CENTER)
+        val maxWidth = (MAX_SHEET_WIDTH_DP * metrics.density).toInt()
+        val width = min(metrics.widthPixels, maxWidth)
+        window.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT)
+        window.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
+    }
+
+    private fun applyWindowInsets() {
+        val root = binding.root
+        val baseLeft = root.paddingLeft
+        val baseTop = root.paddingTop
+        val baseRight = root.paddingRight
+        val baseBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.updatePadding(
+                left = baseLeft + bars.left,
+                top = baseTop,
+                right = baseRight + bars.right,
+                bottom = baseBottom + bars.bottom
+            )
+            insets
+        }
     }
 
     private fun setupButtons() {

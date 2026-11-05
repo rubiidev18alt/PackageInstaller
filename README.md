@@ -32,9 +32,9 @@ instead of the standard on-device installer. That means:
   browser can hand APKs to it.
 - **Split bundles** — installs `.apk`, `.apks`, `.xapk`, `.apkm`, and `.zip` bundles, or multiple
   selected split APKs, using a proper `pm install-create / install-write / install-commit` session.
-- **System-style install popup** — opening an APK shows a compact dialog just like Android's own
-  installer: app icon + name, an install / update / downgrade prompt, Cancel / Install, live
-  progress, and Done / Open when finished.
+- **System-style install popup** — opening an APK slides up a bottom sheet anchored to the bottom
+  of the screen, just like Samsung's One UI installer: app icon + name, an install / update /
+  downgrade prompt, Cancel / Install, live progress, and Done / Open when finished.
 - **App preview** — icon, label, package name, version, size, min/target SDK, and an
   update / downgrade / same-version comparison against what's installed.
 - **Options** — allow downgrade (`-d`), grant all runtime permissions (`-g`), and an automatic retry
@@ -93,8 +93,8 @@ used automatically (or select it explicitly under *Preferred backend*).
 ## Usage
 
 - **From a file manager / browser:** open or share an `.apk` (or `.apks` / `.xapk` / `.apkm`) and
-  choose **Install with Shell Installer**. A system-installer-style popup appears over the current
-  app with the app's icon, name, and version.
+  choose **Install with Shell Installer**. A system-installer-style bottom sheet slides up from the
+  bottom of the screen with the app's icon, name, and version.
 - **From the app:** tap **Choose APK or bundle**, select one or more files; the same install popup
   appears. Review the info and tap **Install**.
 - While installing, the popup shows live progress; **Details** expands the full `pm` session log.
