@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Build
 import dev.rubiidev.shellinstaller.util.shellQuote
 import io.github.muntashirakon.adb.AbsAdbConnectionManager
-import io.github.muntashirakon.adb.AdbMdns
+import io.github.muntashirakon.adb.android.AdbMdns
 import io.github.muntashirakon.adb.AdbPairingRequiredException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

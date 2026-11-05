@@ -134,7 +134,7 @@ class InstallActivity : AppCompatActivity() {
             is InstallManager.State.Success -> {
                 binding.tvResult.text = getString(R.string.install_success)
                 binding.tvResult.setTextColor(
-                    MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary)
+                    MaterialColors.getColor(binding.tvResult, com.google.android.material.R.attr.colorPrimary)
                 )
                 binding.btnOpen.visibility = View.VISIBLE
                 binding.btnRetry.visibility = View.GONE
@@ -142,7 +142,7 @@ class InstallActivity : AppCompatActivity() {
             is InstallManager.State.Failed -> {
                 binding.tvResult.text = getString(R.string.install_failed) + "\n" + state.message
                 binding.tvResult.setTextColor(
-                    MaterialColors.getColor(this, com.google.android.material.R.attr.colorError)
+                    MaterialColors.getColor(binding.tvResult, com.google.android.material.R.attr.colorError)
                 )
                 binding.btnOpen.visibility = View.GONE
                 binding.btnRetry.visibility = if (state.info != null) View.VISIBLE else View.GONE
