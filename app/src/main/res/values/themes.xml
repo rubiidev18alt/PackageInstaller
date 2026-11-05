@@ -34,9 +34,16 @@
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.6</item>
         <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowAnimationStyle">@style/Animation.ShellInstaller.InstallSheet</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Slide the install sheet up from / down to the bottom edge. -->
+    <style name="Animation.ShellInstaller.InstallSheet" parent="@android:style/Animation">
+        <item name="android:windowEnterAnimation">@anim/install_sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/install_sheet_exit</item>
     </style>
 
     <style name="SectionHeader">
