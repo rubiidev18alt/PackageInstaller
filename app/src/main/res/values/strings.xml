@@ -10,6 +10,11 @@
     <string name="backend_section">Install backend</string>
     <string name="backend_section_hint">Installs run as the shell user (like adb install), so they skip the on-device “unknown sources” / advanced sideloading flow.</string>
 
+    <string name="active_ready_title">Ready to install</string>
+    <string name="active_ready_subtitle">Using %1$s</string>
+    <string name="active_none_title">No backend ready</string>
+    <string name="active_none_subtitle">Set up Shizuku, Wireless ADB, or Root below.</string>
+
     <string name="shizuku_title">Shizuku</string>
     <string name="shizuku_desc">Recommended. Start Shizuku via Wireless debugging (no root, no PC), then grant access below.</string>
     <string name="shizuku_not_installed">Not installed</string>
@@ -34,6 +39,8 @@
     <string name="disconnect">Disconnect</string>
     <string name="auto_detect_ports">Auto-detect ports</string>
     <string name="open_developer_options">Open developer options</string>
+    <string name="adb_setup">Set up wireless ADB</string>
+    <string name="adb_hide_setup">Hide setup</string>
     <string name="adb_instructions">In Developer options → Wireless debugging: tap “Pair device with pairing code” to show the pairing port and code (keep that dialog open, use split-screen). The connection port is shown on the main Wireless debugging screen.</string>
 
     <string name="root_title">Root (su)</string>
@@ -56,7 +63,7 @@
     <string name="about">Shell Installer installs APKs with shell-level privileges via Shizuku, on-device Wireless ADB, or root. It does not use the standard PackageInstaller UI and never needs the “install unknown apps” permission.</string>
     <string name="view_source">View source on GitHub</string>
 
-    <!-- Install screen -->
+    <!-- Install popup -->
     <string name="install_title">Install app</string>
     <string name="preparing">Preparing…</string>
     <string name="copying_file">Copying file…</string>
@@ -64,17 +71,26 @@
     <string name="parsing_apk">Reading APK…</string>
     <string name="install">Install</string>
     <string name="installing">Installing…</string>
+    <string name="installing_app">Installing app…</string>
     <string name="cancel">Cancel</string>
-    <string name="open_app">Open app</string>
+    <string name="open_app">Open</string>
     <string name="done">Done</string>
     <string name="retry">Retry</string>
     <string name="close">Close</string>
+    <string name="details">Details</string>
+    <string name="hide_details">Hide details</string>
     <string name="uninstall_existing">Uninstall existing app</string>
     <string name="uninstall_confirm_title">Uninstall %1$s?</string>
     <string name="uninstall_confirm_msg">This removes the app and its data for the current user. This cannot be undone.</string>
     <string name="uninstall">Uninstall</string>
     <string name="install_success">Installed successfully</string>
+    <string name="install_success_popup">App installed.</string>
     <string name="install_failed">Install failed</string>
+    <string name="install_failed_popup">App not installed.</string>
+    <string name="install_question">Do you want to install this app?</string>
+    <string name="update_question">Do you want to update this app?</string>
+    <string name="downgrade_question">Do you want to downgrade this app?</string>
+    <string name="same_version_question">This version is already installed. Reinstall it?</string>
     <string name="not_installed">Not installed</string>
     <string name="installed_version">Installed: %1$s</string>
     <string name="update_available">Update: %1$s → %2$s</string>
@@ -84,6 +100,7 @@
     <string name="single_apk">Single APK</string>
     <string name="sdk_range">minSdk %1$d · targetSdk %2$d</string>
     <string name="backend_line">Backend: %1$s</string>
+    <string name="no_backend_short">none ready</string>
     <string name="log">Log</string>
     <string name="working">Working…</string>
 
