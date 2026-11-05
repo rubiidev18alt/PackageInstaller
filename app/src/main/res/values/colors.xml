@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="seed">#00696E</color>
+    <color name="ic_launcher_background">#00696E</color>
+
+    <color name="md_primary">#00696E</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#6FF6FF</color>
+    <color name="md_on_primary_container">#002022</color>
+    <color name="md_secondary_container">#CCE8E9</color>
+    <color name="md_on_secondary_container">#051F21</color>
+    <color name="md_error">#BA1A1A</color>
+    <color name="md_error_container">#FFDAD6</color>
+    <color name="md_on_error_container">#410002</color>
+
+    <color name="md_primary_dark">#4CD9E2</color>
+    <color name="md_on_primary_dark">#003739</color>
+    <color name="md_primary_container_dark">#004F53</color>
+    <color name="md_on_primary_container_dark">#6FF6FF</color>
+    <color name="md_secondary_container_dark">#324B4D</color>
+    <color name="md_on_secondary_container_dark">#CCE8E9</color>
+    <color name="md_error_dark">#FFB4AB</color>
+    <color name="md_error_container_dark">#93000A</color>
+    <color name="md_on_error_container_dark">#FFDAD6</color>
+</resources>
